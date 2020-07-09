@@ -6,6 +6,7 @@ import (
 	"github.com/cjp2600/assr/server"
 	"github.com/spf13/cobra"
 	"os"
+	"runtime"
 )
 
 // runCmd represents the run command
@@ -21,6 +22,8 @@ func init() {
 }
 
 func RunExecute(cmd *cobra.Command, args []string) {
+	runtime.GOMAXPROCS(runtime.NumCPU())
+
 	src, err := config.GetStaticSrc()
 	if err != nil {
 		log.Error(err)
@@ -37,7 +40,7 @@ func RunExecute(cmd *cobra.Command, args []string) {
 	log.Info(config.GetProjectName() + " is running on " + config.GetAppPort() + " port 🍑 - " + config.GetAppDomain())
 
 	prServ := server.NewParser()
-	if err := prServ.Run(); err != nil {
+	if err := prServ.Run(src); err != nil {
 		log.Fatal(err.Error())
 	}
 }

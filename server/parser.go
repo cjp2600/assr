@@ -7,7 +7,6 @@ import (
 	"github.com/fasthttp/router"
 	"github.com/patrickmn/go-cache"
 	"github.com/valyala/fasthttp"
-	proxy "github.com/yeqown/fasthttp-reverse-proxy"
 	"log"
 	//"time"
 
@@ -16,8 +15,7 @@ import (
 )
 
 var (
-	staticProxyServer = proxy.NewReverseProxy("localhost:8080")
-	inm               *cache.Cache
+	inm *cache.Cache
 )
 
 type Parser struct {
@@ -27,10 +25,7 @@ func NewParser() *Parser {
 	return &Parser{}
 }
 
-func (s *Parser) Run() error {
-	if !config.IsDebug() {
-		proxy.SetProduction()
-	}
+func (s *Parser) Run(dir string) error {
 	inm = cache.New(config.GetCacheDurationTTL(), config.GetCacheDurationTTL())
 
 	r := router.New()
@@ -40,13 +35,22 @@ func (s *Parser) Run() error {
 		r.GET(route, SsrHandler)
 	}
 
-	return fasthttp.ListenAndServe(":"+config.GetAppPort(), r.Handler)
+	// 		ReadBufferSize: 100 * 1024 * 1024 * 1024,
+	serv := fasthttp.Server{
+		Handler:        r.Handler,
+		ReadBufferSize: 100 * 1024,
+	}
+
+	return serv.ListenAndServe(":" + config.GetAppPort())
 }
 
 func SsrHandler(ctx *fasthttp.RequestCtx) {
-	var path = string(ctx.Path())
-	var cacheId = "cache" + path
-	var res string
+	var (
+		path    = string(ctx.Path())
+		cacheId = "cache" + path
+		res     string
+	)
+
 	html, found := inm.Get(cacheId)
 	if found {
 		res = html.(string)
@@ -56,7 +60,18 @@ func SsrHandler(ctx *fasthttp.RequestCtx) {
 		if config.IsDebug() {
 			ops = append(ops, chromedp.WithDebugf(log.Printf))
 		}
-		ctxw, cancel := chromedp.NewContext(context.Background(), ops...)
+
+		opts := append(chromedp.DefaultExecAllocatorOptions[:],
+			chromedp.DisableGPU,
+			chromedp.NoFirstRun,
+			chromedp.NoDefaultBrowserCheck,
+			chromedp.Flag("headless", true),
+			chromedp.Flag("ignore-certificate-errors", true),
+		)
+		allocCtx, cancel := chromedp.NewExecAllocator(context.Background(), opts...)
+		defer cancel()
+
+		ctxw, cancel := chromedp.NewContext(allocCtx, ops...)
 		defer cancel()
 
 		err := chromedp.Run(ctxw, scrapIt(url, &res))
@@ -71,23 +86,40 @@ func SsrHandler(ctx *fasthttp.RequestCtx) {
 }
 
 func DefaultProxyHandler(ctx *fasthttp.RequestCtx) {
-	// proxy static
-	for sp, ct := range StaticPostfix {
-		if strings.Contains(strings.ToLower(string(ctx.Path())), sp) {
-			ctx.SetContentType(ct)
-			staticProxyServer.ServeHTTP(ctx)
+	src, _ := config.GetStaticSrc()
+	path := string(ctx.Path())
+
+	fs := &fasthttp.FS{
+		Root:               src,
+		IndexNames:         []string{config.GetIndexName()},
+		GenerateIndexPages: true,
+		Compress:           config.IsCompress(),
+		AcceptByteRange:    true,
+	}
+	fsHandler := fs.NewRequestHandler()
+
+	// static proxy
+	for postfix, contentType := range StaticPostfix {
+		if strings.Contains(strings.ToLower(path), postfix) {
+			ctx.SetContentType(contentType)
+			fsHandler(ctx)
 			return
 		}
 	}
 
-	ctx.SetContentType("text/html; charset=utf-8")
-	staticProxyServer.ServeHTTP(ctx)
+	ctx.URI().SetPath("/")
+	switch string(ctx.Path()) {
+	default:
+		ctx.SetContentType("text/html")
+		fsHandler(ctx)
+	}
 }
 
 func scrapIt(url string, str *string) chromedp.Tasks {
 	return chromedp.Tasks{
 		chromedp.Navigate(url),
 		chromedp.WaitReady("html"),
+		chromedp.Sleep(config.GetWaitTimeout()),
 		chromedp.ActionFunc(func(ctx context.Context) error {
 			node, err := dom.GetDocument().Do(ctx)
 			if err != nil {

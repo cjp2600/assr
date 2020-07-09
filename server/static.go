@@ -43,5 +43,10 @@ func (s *Static) Run(dir string) error {
 			fsHandler(ctx)
 		}
 	}
-	return fasthttp.ListenAndServe(":"+config.GetStaticPort(), requestHandler)
+
+	// 		ReadBufferSize: 100 * 1024 * 1024 * 1024,
+	serv := fasthttp.Server{
+		Handler: requestHandler,
+	}
+	return serv.ListenAndServe(":" + config.GetStaticPort())
 }

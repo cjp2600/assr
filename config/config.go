@@ -10,6 +10,11 @@ func GetStaticDomain(path string) string {
 	return "http://localhost:" + GetStaticPort() + path
 }
 
+func GetWaitTimeout() time.Duration {
+	ttl := viper.GetDuration("ssr.sleep")
+	return ttl * time.Millisecond
+}
+
 func GetAppDomain() string {
 	return "http://localhost:" + GetAppPort()
 }
