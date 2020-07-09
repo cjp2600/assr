@@ -1,36 +1,43 @@
 package cmd
 
 import (
-	"fmt"
-
+	"github.com/cjp2600/assr/config"
+	"github.com/cjp2600/assr/log"
+	"github.com/cjp2600/assr/server"
 	"github.com/spf13/cobra"
+	"os"
 )
 
 // runCmd represents the run command
 var runCmd = &cobra.Command{
 	Use:   "run",
-	Short: "A brief description of your command",
-	Long: `A longer description that spans multiple lines and likely contains examples
-and usage of using your command. For example:
-
-Cobra is a CLI library for Go that empowers applications.
-This application is a tool to generate the needed files
-to quickly create a Cobra application.`,
-	Run: func(cmd *cobra.Command, args []string) {
-		fmt.Println("run called")
-	},
+	Short: "run server",
+	Long:  ``,
+	Run:   RunExecute,
 }
 
 func init() {
 	rootCmd.AddCommand(runCmd)
+}
 
-	// Here you will define your flags and configuration settings.
+func RunExecute(cmd *cobra.Command, args []string) {
+	src, err := config.GetStaticSrc()
+	if err != nil {
+		log.Error(err)
+		os.Exit(0)
+	}
 
-	// Cobra supports Persistent Flags which will work for this command
-	// and all subcommands, e.g.:
-	// runCmd.PersistentFlags().String("foo", "", "A help for foo")
+	go func() {
+		stServ := server.NewStatic()
+		err := stServ.Run(src)
+		if err != nil {
+			log.Fatal(err.Error())
+		}
+	}()
+	log.Info(config.GetProjectName() + " is running on " + config.GetAppPort() + " port 🍑 - " + config.GetAppDomain())
 
-	// Cobra supports local flags which will only run when this command
-	// is called directly, e.g.:
-	// runCmd.Flags().BoolP("toggle", "t", false, "Help message for toggle")
+	prServ := server.NewParser()
+	if err := prServ.Run(); err != nil {
+		log.Fatal(err.Error())
+	}
 }

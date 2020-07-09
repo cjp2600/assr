@@ -1,0 +1,20 @@
+project: project_name
+
+app:
+  port: "3000"
+  debug: false
+
+static:
+  compress: true
+  src: "build/"
+  index: "index.html"
+  port: "8080"
+
+cache:
+  ttl: 3600
+
+ssr:
+  enable: true
+  routes:
+    - "/"
+    - "/courses/{code}"
