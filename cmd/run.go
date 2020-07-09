@@ -30,8 +30,6 @@ func RunExecute(cmd *cobra.Command, args []string) {
 		os.Exit(0)
 	}
 
-	server.PreloadOnStart()
-
 	go func() {
 		stServ := server.NewStatic()
 		err := stServ.Run(src)
@@ -39,6 +37,7 @@ func RunExecute(cmd *cobra.Command, args []string) {
 			log.Fatal(err.Error())
 		}
 	}()
+	server.PreloadOnStart()
 	log.Info(config.GetProjectName() + " is running on " + config.GetAppPort() + " port 🍑 - " + config.GetAppDomain())
 
 	prServ := server.NewParser()

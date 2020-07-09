@@ -93,7 +93,7 @@ func GetRoutes() []Routes {
 				if k.(string) == "path" {
 					path = v.(string)
 				}
-				timeout = 1000
+				timeout = 2500
 				if k.(string) == "timeout" {
 					timeout = v.(int)
 				}
