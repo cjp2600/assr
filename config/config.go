@@ -3,8 +3,14 @@ package config
 import (
 	"fmt"
 	"github.com/spf13/viper"
+	"strings"
 	"time"
 )
+
+type Routes struct {
+	Path    string
+	Timeout time.Duration
+}
 
 func GetStaticDomain(path string) string {
 	return "http://localhost:" + GetStaticPort() + path
@@ -64,12 +70,42 @@ func IsEnableSSR() bool {
 	return viper.GetBool("ssr.enable")
 }
 
-func GetRoutes() []string {
-	if !IsEnableSSR() {
-		return []string{}
+func GetRouteTimeout(path []byte) time.Duration {
+	for _, item := range GetRoutes() {
+		if strings.EqualFold(item.Path, string(path)) {
+			return item.Timeout
+		}
 	}
-	routes := viper.GetStringSlice("ssr.routes")
-	return routes
+	return 0
+}
+
+func GetRoutes() []Routes {
+	var res []Routes
+	if !IsEnableSSR() {
+		return nil
+	}
+	routes := viper.Get("ssr.routes")
+	if it, ok := routes.([]interface{}); ok {
+		for _, item := range it {
+			var path string
+			var timeout int
+			for k, v := range item.(map[interface{}]interface{}) {
+				if k.(string) == "path" {
+					path = v.(string)
+				}
+				timeout = 1000
+				if k.(string) == "timeout" {
+					timeout = v.(int)
+				}
+			}
+			res = append(res, Routes{
+				Path:    path,
+				Timeout: time.Duration(timeout) * time.Millisecond,
+			})
+		}
+	}
+
+	return res
 }
 
 func GetIndexName() string {

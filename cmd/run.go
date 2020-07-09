@@ -30,6 +30,8 @@ func RunExecute(cmd *cobra.Command, args []string) {
 		os.Exit(0)
 	}
 
+	server.PreloadOnStart()
+
 	go func() {
 		stServ := server.NewStatic()
 		err := stServ.Run(src)

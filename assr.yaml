@@ -15,8 +15,10 @@ cache:
 
 ssr:
   enable: true
-  sleep: 500
+  all: false
   routes:
-    - "/"
-    - "/merchants"
-    - "/providers"
+    - path: "/"
+    - path: "/merchants"
+    - path: "/providers"
+    - path: "/terms"
+    - path: "/privacy"
