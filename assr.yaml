@@ -18,7 +18,5 @@ ssr:
   all: false
   routes:
     - path: "/"
-    - path: "/merchants"
-    - path: "/providers"
     - path: "/terms"
     - path: "/privacy"

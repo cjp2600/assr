@@ -32,6 +32,8 @@ github.com/chromedp/cdproto v0.0.0-20200116234248-4da64dd111ac h1:T7V5BXqnYd55Hj
 github.com/chromedp/cdproto v0.0.0-20200116234248-4da64dd111ac/go.mod h1:PfAWWKJqjlGFYJEidUM6aVIWPr0EpobeyVWEEmplX7g=
 github.com/chromedp/chromedp v0.5.3 h1:F9LafxmYpsQhWQBdCs+6Sret1zzeeFyHS5LkRF//Ffg=
 github.com/chromedp/chromedp v0.5.3/go.mod h1:YLdPtndaHQ4rCpSpBG+IPpy9JvX0VD+7aaLxYgYj28w=
+github.com/chromedp/chromedp-proxy v0.0.0-20200612221528-43e36355835c h1:DqrlIFh7LtOetjGrpNDPjEa24uqWzomDX4qO6B0wSGc=
+github.com/chromedp/chromedp-proxy v0.0.0-20200612221528-43e36355835c/go.mod h1:iRNzOlHqW5mC/pXtkof19+n0MqK8iJT6lhxigmOSzXs=
 github.com/client9/misspell v0.3.4/go.mod h1:qj6jICC3Q7zFZvVWo7KLAzC3yx5G7kyvSDkc90ppPyw=
 github.com/coreos/bbolt v1.3.2/go.mod h1:iRUV2dpdMOn7Bo10OQBFzIJO9kkE559Wcmn+qkEiiKk=
 github.com/coreos/etcd v3.3.10+incompatible/go.mod h1:uF7uidLiAD3TWHmW31ZFd/JWoc32PjwdhPthX9715RE=

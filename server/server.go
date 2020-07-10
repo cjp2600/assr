@@ -3,7 +3,7 @@ package server
 // def MIME types
 var StaticPostfix = map[string]string{
 	".js":    "application/javascript; charset=utf-8",
-	".css":   "text/css",
+	".css":   "text/css; charset=utf-8",
 	".svg":   "image/svg+xml",
 	".json":  "text/json",
 	".ico":   "image/x-icon",
